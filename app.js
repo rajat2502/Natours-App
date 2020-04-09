@@ -19,6 +19,7 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
+// get tours
 app.get("/api/v1/tours", (req, res) => {
   res.status(200).json({
     status: "success",
@@ -29,6 +30,27 @@ app.get("/api/v1/tours", (req, res) => {
   });
 });
 
+// get tour by id
+app.get("/api/v1/tours/:id", (req, res) => {
+  // console.log(req.params);
+  const id = parseInt(req.params.id);
+  const tour = tours.find(elm => elm.id === id);
+
+  if (!tour) {
+    return res.status(404).json({
+      status: "fail",
+      message: "ID not found"
+    });
+  }
+  res.status(200).json({
+    status: "success",
+    data: {
+      tour
+    }
+  });
+});
+
+// create a new tour
 app.post("/api/v1/tours", (req, res) => {
   const newId = tours[tours.length - 1].id + 1;
   const newTour = Object.assign({ id: newId }, req.body);
@@ -47,7 +69,41 @@ app.post("/api/v1/tours", (req, res) => {
   );
 });
 
-const port = 3001;
-app.listen(port, () => {
+// update a tour
+app.patch("/api/v1/tours/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  console.log(req.body, id);
+  if (id > tours.length) {
+    return res.status(404).json({
+      status: "fail",
+      message: "ID not found!"
+    });
+  }
+  res.status(200).json({
+    status: "success",
+    data: {
+      tour: "<Updated Tour"
+    }
+  });
+});
+
+// delete a tour
+app.delete("/api/v1/tours/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  if (id > tours.length) {
+    return res.status(404).json({
+      status: "fail",
+      message: "ID not found!"
+    });
+  }
+  res.status(204).json({
+    status: "success",
+    data: null
+  });
+});
+
+const port = 3000;
+app.listen(port, "127.0.0.1", () => {
   console.log(`App running on port ${port}...`);
 });
