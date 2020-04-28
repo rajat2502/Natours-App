@@ -13,7 +13,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.use(express.json()); // middleware to add request data to the body
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/public`)); // to server static files
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
