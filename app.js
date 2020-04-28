@@ -7,7 +7,6 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 // 1) Middlewares
-
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
