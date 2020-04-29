@@ -6,19 +6,35 @@ exports.getTours = async (req, res) => {
     console.log(req.query);
 
     // Build a Query
-    // 1) filtering (on the basis of fields)
+    // 1A) filtering (on the basis of fields)
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    // 2) Advanced Filtering (gte, lte, gt, lt)
+    // 1B) Advanced Filtering (gte, lte, gt, lt)
     // { difficulty: 'easy', duration: { $gte: 5 } } - How mongo works
     // { difficulty: 'easy', duration: { gte: '5' } } - How req.query looks
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    console.log(JSON.parse(queryStr));
 
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // 2) Sorting
+    if (req.query.sort) {
+      // query = query.sort(req.query.sort);
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // 3) Field Limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-createdAt');
+    }
 
     // Execute a query
     const tours = await query;
