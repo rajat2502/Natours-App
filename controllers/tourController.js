@@ -3,8 +3,33 @@ const Tour = require('../models/tourModel');
 // get all tours
 exports.getTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    console.log(req.query);
 
+    // Build a Query
+    // 1) filtering (on the basis of fields)
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // 2) Advanced Filtering (gte, lte, gt, lt)
+    // { difficulty: 'easy', duration: { $gte: 5 } } - How mongo works
+    // { difficulty: 'easy', duration: { gte: '5' } } - How req.query looks
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    console.log(JSON.parse(queryStr));
+
+    const query = Tour.find(JSON.parse(queryStr));
+
+    // Execute a query
+    const tours = await query;
+    // OR
+    // const tours = Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // Send Response
     res.status(200).json({
       status: 'success',
       results: tours.length,
