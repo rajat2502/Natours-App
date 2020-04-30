@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
+// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -7,7 +9,11 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A Tour must have a name'],
       unique: true,
       trim: true,
+      maxlength: [40, 'A Tour must have at most 40 characters'],
+      minlength: [10, 'A Tour must have at least 10 characters'],
+      // validate: [validator.isAlpha, 'A Tour must contain alpha characters'],
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A Tour must have a duration'],
@@ -19,10 +25,17 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'A Tour must have a difficulty'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message:
+          'The difficulty can either be "easy" or "medium" or "difficult"',
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be at least 1.0'],
+      max: [5, 'Rating must be at most 5.0'],
     },
     ratingsQuantity: {
       type: Number,
@@ -32,7 +45,16 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'A Tour must have a price'],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        validator: function (val) {
+          // this only points to the doc on NEW document creation and not on any updates so this function won't work for update
+          return val < this.price;
+        },
+        message: 'The priceDiscount ({VALUE}) must be lower than the Price',
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -53,6 +75,10 @@ const tourSchema = new mongoose.Schema(
       select: false,
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -62,6 +88,42 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// DOCUMENT Middleware: runs before(pre)/after(post) only save() and create() but not on insertMany()
+
+// pre middleware have access to the current document using 'this'
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// post middleware don't have access to this but have access to the finished document
+// tourSchema.post('save', function (doc, next) {
+//   console.log(doc);
+//   next();
+// });
+
+// QUERY Middleware
+// tourSchema.pre('find', function (next) {
+tourSchema.pre(/^find/, function (next) {
+  // /^find/ - all the strings that starts with find
+  this.start = Date.now();
+  this.find({ secretTour: { $ne: true } });
+  next();
+});
+
+// tourSchema.post(/^find/, function (docs, next) {
+//   console.log(`Query took ${Date.now() - this.start}ms`);
+//   console.log(docs);
+//   next();
+// });
+
+// AGGREGATION Middleware
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
+  next();
 });
 
 const Tour = mongoose.model('Tour', tourSchema);
