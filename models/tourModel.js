@@ -108,7 +108,7 @@ tourSchema.pre('save', function (next) {
 // tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
   // /^find/ - all the strings that starts with find
-  this.start = Date.now();
+  // this.start = Date.now();
   this.find({ secretTour: { $ne: true } });
   next();
 });
@@ -122,7 +122,7 @@ tourSchema.pre(/^find/, function (next) {
 // AGGREGATION Middleware
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
+  // console.log(this.pipeline());
   next();
 });
 
