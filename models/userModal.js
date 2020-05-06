@@ -38,6 +38,11 @@ const userSchema = new mongoose.Schema({
       message: "Passwords don't match",
     },
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
@@ -75,6 +80,12 @@ userSchema.methods.correctPassword = async (
 ) => {
   return await bcrypt.compare(candidatePassword, userPassword); // we can't compare them with any other method
 };
+
+// to stop any inactive(deleted) user to be shown
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 userSchema.methods.changedPasswordAfter = function (JWTTimesStamp) {
   if (this.passwordChangedAt) {

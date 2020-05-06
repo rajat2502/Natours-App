@@ -14,6 +14,22 @@ const signToken = (id) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COKKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    // secure: true,
+    httpOnly: true,
+  };
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove password and active
+  user.active = undefined;
+  user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',
@@ -39,14 +55,13 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 2) Check if user exists and password is correct
   const user = await User.findOne({ email }).select('+password');
-  const userDetails = await User.findOne({ email }); // don't contains the password
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('email or password is incorrect!', 401));
   }
 
   // 3) Send jwt token
-  createSendToken(userDetails, 200, res);
+  createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -192,6 +207,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Login in user and send JWT
-  const userDetails = await User.findById(req.user._id);
-  createSendToken(userDetails, 201, res);
+  createSendToken(user, 201, res);
 });
