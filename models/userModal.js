@@ -10,10 +10,10 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Please provide your email'],
+    required: [true, 'Please provide your Email ID'],
     unique: true,
     lowercase: true, // tranforms into lowercase
-    validate: [validator.isEmail, 'Please provide a valid email'],
+    validate: [validator.isEmail, 'Please provide a valid Email ID'],
   },
   photo: String,
   role: {
@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8,
-    select: false,
+    select: false, // son't send the password
   },
   passwordConfirm: {
     type: String,
@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
 });
 
+// this middleware is used to encrypt the password when the user
+// sign up for the first time or when he/she modifies it
 userSchema.pre('save', async function (next) {
   // Work only when password is modified
   if (!this.isModified('password')) {
@@ -53,10 +55,11 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
 
   // Delete passwordConfirm
-  this.passwordConfirm = undefined;
+  this.passwordConfirm = undefined; // remove it from db
   next();
 });
 
+// Whenever password changes then save the time in passwordChangedAt
 userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) {
     return next();
@@ -70,7 +73,7 @@ userSchema.methods.correctPassword = async (
   candidatePassword,
   userPassword
 ) => {
-  return await bcrypt.compare(candidatePassword, userPassword);
+  return await bcrypt.compare(candidatePassword, userPassword); // we can't compare them with any other method
 };
 
 userSchema.methods.changedPasswordAfter = function (JWTTimesStamp) {
