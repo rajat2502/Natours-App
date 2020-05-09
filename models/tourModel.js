@@ -116,6 +116,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
+
 // DOCUMENT Middleware: runs before(pre)/after(post) only save() and create() but not on insertMany()
 
 // pre middleware have access to the current document using 'this'
