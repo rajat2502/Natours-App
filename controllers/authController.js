@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModal');
+const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const sendEmail = require('../utils/email');
@@ -106,7 +106,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 // we made a clousure as the middleware can't be an arguement
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
-    // roles: ['admin', 'lead-guide']
+    // Example: sroles: ['admin', 'lead-guide']
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError("You don't have permission to perform this action", 403)
