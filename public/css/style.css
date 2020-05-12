@@ -32,7 +32,6 @@ body {
   font-weight: 300;
   font-family: 'Lato', sans-serif;
   color: #777;
-  padding: 3rem;
   min-height: 100vh;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -795,7 +794,7 @@ body {
 }
 
 .footer {
-  background-color: #f7f7f7;
+  background-color: #2a2929;
   padding: 6rem 4rem 3rem 4rem;
   font-size: 1.4rem;
   display: grid;
