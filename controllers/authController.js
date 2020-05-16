@@ -21,9 +21,9 @@ const createSendToken = (user, statusCode, res) => {
     // secure: true,
     httpOnly: true,
   };
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
+  // if (process.env.NODE_ENV === 'production') {
+  //   cookieOptions.secure = true;
+  // }
 
   res.cookie('jwt', token, cookieOptions);
 
@@ -110,6 +110,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // Grant access to protected route
   req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
 
